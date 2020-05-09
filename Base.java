@@ -1,73 +1,70 @@
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 class Base {
     
-    private HashMap<Client, PrintWriter> clients;
+    private HashMap<String, PrintWriter> cliprint;
+    private HashMap<String, List<String>> clinfo; 
 
     public Base(){
-        this.clients = new HashMap<Client, PrintWriter>();
+        this.cliprint = new HashMap<String, PrintWriter>();
+        this.clinfo = new HashMap<String, List<String>>();
+    }
+    
+    public void setCount(String username, String count){
+        this.clinfo.get(username).set(2,count);
     }
 
-    public int calculate(){
-        int sum = 0;
-        int nc = 0;
+    public void setStatus(String username, String status){
+        this.clinfo.get(username).set(1,status);
+    }
 
-        for(Client client: this.clients.keySet()){
-            
-            if (client.getCount() >= 0){
-                sum+=client.getCount();
+    public synchronized void calculate(){
+        double sum = 0;
+        int nc = 0;
+        double temp = 0;
+
+        for(String s: this.clinfo.keySet()){
+            temp = Double.parseDouble(this.clinfo.get(s).get(2));
+            if (temp >= 0){
+                sum+=temp;
                 nc++;
             }
         }
-        return (sum/(150*nc)*100);
-    }
+        multicast(String.valueOf(sum/(150*nc)*100));
+    } 
 
-    public Client getClient(String username){
-        for(Client client : this.clients.keySet()){
-            if (client.getUser().equals(username)){
-                return client;
-            }
-        }
-        return null;
-    }
-
-    private boolean check(Client c){
-        for(Client client : this.clients.keySet()){
-            if (client.getUser().equals(c.getUser())){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public synchronized boolean register(Client c, PrintWriter p){
-        if(!check(c)){
-            this.clients.put(c, p);
+    public synchronized boolean register(String user, String pwd, PrintWriter p){
+        if (!this.clinfo.containsKey(user) && !this.cliprint.containsKey(user)){
+            this.cliprint.put(user, p);
             
-            System.out.println("Client successfully registered with username: " + c.getUser());
-            p.println("User registered!");
+            List<String> info = new ArrayList<String>();
+            info.add(pwd);
+            info.add("false");
+            info.add("0");
+            this.clinfo.put(user,info);
+           
+            System.out.println("Client successfully registered with username: " + user);
+            p.println("User registered");
             p.flush();
+            
             return true;
-        }  
+        }
         return false;
     }
 
     public synchronized boolean login(String user, String pass){
-        
-        for(Client client : this.clients.keySet()){
-            if(client.getUser().equals(user) && client.getPass().equals(pass)){
+        if(this.clinfo.containsKey(user) && this.cliprint.containsKey(user) && this.clinfo.get(user).get(0).equals(pass)){
+            PrintWriter writer = this.cliprint.get(user);
 
-                client.setStatus(true);
+            System.out.println("Client successfully logged in!");
+            writer.println("User logged");
+            writer.flush();
 
-                PrintWriter writer = this.clients.get(client);
-
-                System.out.println("Client successfully logged in!");
-                writer.println("User registered!");
-                writer.flush();
-
-                return true;
-            }
+            this.clinfo.get(user).set(1,"true");
+            return true;
         }
         return false;
     }
@@ -75,10 +72,10 @@ class Base {
     public synchronized void multicast(String msg){
         String finalMsg = "The average infection rate is: " + msg;
 
-        for(Client client: this.clients.keySet()){
-            if(client.getStatus()){
-                PrintWriter pw = this.clients.get(client);
-
+        for(String s : this.clinfo.keySet()){
+            if(this.clinfo.get(s).get(1).equals("true")){
+                
+                PrintWriter pw = this.cliprint.get(s);
                 pw.println(finalMsg);
                 pw.flush();
             }

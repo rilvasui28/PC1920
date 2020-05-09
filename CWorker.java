@@ -17,76 +17,52 @@ class CWorker implements Runnable{
 
     public void run(){
         try {
-            out.println("Choose an option!\n1. Register\n2.Log in");
 
             String option = in.readLine();
             String username;
             String password;
-            Client client;
 
             if(option.equals("1")){
-                out.println("Choose an username");
-                out.flush();
                 username = in.readLine();
-                out.println("Choose a password");
-                out.flush();
                 password = in.readLine();
-                Client c = new Client(username, password);
-                while(!base.register(c, out)){
-                    out.println("Username already taken! Please choose another");
+                while(!base.register(username, password, out)){
+                    System.out.println("Username already taken! Please choose another");
+                    out.println("false");
                     out.flush();
                     username = in.readLine();
-                    c = new Client(username, password);
+                    password = in.readLine();
                 }
-                out.println("Now please login using your credentials!");
-                out.flush();
                 option = "2";
             }
 
             if(option.equals("2")){
-                out.println("Username");
-                out.flush();
                 username = in.readLine();
-                out.println("Password");
-                out.flush();
                 password = in.readLine();
                 while(!base.login(username, password)){
-                    out.println("Username or Password are incorrect! Please try again.");
-                    out.flush();
-                    out.println("Username");
+                    out.println("false");
                     out.flush();
                     username = in.readLine();
-                    out.println("Password");
-                    out.flush();
                     password = in.readLine();
                 }
-                
-                client = base.getClient(username);
-                client.setStatus(true);
-
                 String pi = in.readLine();
                 while(!pi.equals("quit") && pi != null){
                     try {
-                        int count = Integer.parseInt(pi);
-                        client.setCount(count);
-                        int avg = base.calculate();
-                        base.multicast(Integer.toString(avg));
+                        Integer.parseInt(pi);
+                        
+                        base.setCount(username, pi);
+                        base.calculate();
                     } catch(Exception e) {
-                        System.out.println("Please write a number!");
+                        out.println("Please wirte a number between 1 and 150");
+                        out.flush();
+                    } finally {
                         pi = in.readLine();
                     }
                 }
-
-                client.setStatus(false);
+                base.setStatus(username, "false");
                 socket.shutdownInput();
                 socket.shutdownOutput();
                 socket.close();
             }
-
-            if((!option.equals("1")) && (!option.equals("2"))){
-                out.println("Please, choose option 1 or 2.");
-                out.flush();
-            } 
 
         } catch(Exception e){
             e.printStackTrace();

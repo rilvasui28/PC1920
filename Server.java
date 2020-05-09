@@ -19,11 +19,12 @@ class Server {
             this.serverSocket = new ServerSocket(this.port);
 
             while(true){
-
+                System.out.println("Waiting for new connections");
                 Socket socket = serverSocket.accept();
-
+                System.out.println("A client entered the chat");
                 new Thread(new CWorker(this.base, socket)).start();
             }
+            
         } catch(Exception e){
             e.printStackTrace();
         }
