@@ -92,15 +92,18 @@ public class Client {
                     out.println(userInput);
                     out.flush();
                 }
+                
+                System.out.print("Goodbye\n");
 
                 systemIn.close();
                 socket.shutdownOutput();
                 socket.shutdownInput();
                 socket.close();
             }
+
         } catch(Exception e){
             e.printStackTrace();
-        }
+        } 
     }
 
     public static void main(String[] args) {

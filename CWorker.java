@@ -17,7 +17,6 @@ class CWorker implements Runnable{
 
     public void run(){
         try {
-
             String option = in.readLine();
             String username;
             String password;
@@ -38,29 +37,36 @@ class CWorker implements Runnable{
             if(option.equals("2")){
                 username = in.readLine();
                 password = in.readLine();
-                while(!base.login(username, password)){
+                while(!base.login(username, password, out)){
                     out.println("false");
                     out.flush();
                     username = in.readLine();
                     password = in.readLine();
                 }
                 String pi = in.readLine();
-                while(!pi.equals("quit") && pi != null){
+                while(pi != null){
                     try {
-                        Integer.parseInt(pi);
-                        
-                        base.setCount(username, pi);
-                        base.calculate();
-                    } catch(Exception e) {
-                        out.println("Please wirte a number between 1 and 150");
-                        out.flush();
-                    } finally {
+                        int num = Integer.parseInt(pi);
+                        if (num <= 150 && num >= 0){
+                            base.setCount(username, pi);
+                            base.calculate();
+                        } else {
+                            out.println("Please write a number between 1 and 150");
+                            out.flush();
+                        }
                         pi = in.readLine();
-                    }
+                        continue;
+                    } catch(Exception e) {
+                        out.println("Please write a number between 1 and 150");
+                        out.flush();
+                        pi = in.readLine();
+                        continue;
+                    } 
                 }
+                System.out.println("User " + username + " Disconnected");
                 base.setStatus(username, "false");
-                socket.shutdownInput();
                 socket.shutdownOutput();
+                socket.shutdownInput();
                 socket.close();
             }
 
